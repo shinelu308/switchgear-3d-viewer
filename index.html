@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SG-01 开关柜 · 三维展示</title>
+  <meta name="description" content="开关柜精细三维模型：旋转、缩放、爆炸分解、开门与内部结构展示。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='2' width='18' height='28' rx='2' fill='%231c3443'/%3E%3Cpath d='M11 8h10M11 12h10M11 24h10' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script type="importmap">{"imports":{"three":"./vendor/package/build/three.module.js","three/addons/":"./vendor/package/examples/jsm/"}}</script>
+</head>
+<body>
+<header><div class="brand"><span class="mark">SG</span><div><h1>开关柜三维展示</h1><p>SG-01 <span>/</span> 精细展示版 V2</p></div></div><div class="header-right"><span id="status" role="status">正在准备模型</span><button id="fullscreen" class="icon-button" aria-label="全屏展示">⛶</button></div></header>
+<main>
+  <section id="stage" aria-label="三维模型展示区">
+    <div class="stage-label"><span class="eyebrow">SWITCHGEAR / 3D EXPLORER</span><h2 id="view-name">爆炸分解</h2></div>
+    <div id="canvas-host"></div>
+    <div id="loading"><img src="./assets/exploded.png" alt="开关柜爆炸渲染预览"><div class="load-card"><strong id="load-title">正在加载交互模型</strong><p id="load-message">首次打开需下载约 23 MB，请稍候。</p><progress id="progress" max="100" value="0"></progress></div></div>
+    <div class="stage-bottom"><span>拖动旋转 · 滚轮或双指缩放</span><button id="reset" disabled>重置视角 ↗</button></div>
+    <div id="selection" hidden></div>
+  </section>
+  <aside>
+    <div class="section-top"><span class="eyebrow">MODEL CONTROL</span><span class="revision">REV.02</span></div>
+    <h2>观察结构</h2>
+    <p class="intro">从完整柜体到内部组件，切换视角查看结构与装配关系。</p>
+    <div class="states" role="group" aria-label="模型状态"><button data-pose="assembled" disabled>装配</button><button data-pose="exploded" class="active" aria-pressed="true" disabled>爆炸</button><button data-pose="open" disabled>开门</button></div>
+    <div class="range-label"><label for="explode">展开程度</label><output id="explode-value">100%</output></div><input id="explode" type="range" min="0" max="100" value="100" disabled>
+    <button id="play" class="primary" disabled>▷ 播放拆装演示</button>
+    <label class="toggle"><span>查看柜内结构<small>隐藏右侧板及顶盖</small></span><input id="cutaway" type="checkbox" disabled></label>
+    <label class="toggle"><span>自动旋转</span><input id="rotate" type="checkbox" disabled></label>
+    <div class="component-section"><label for="component">定位组件</label><select id="component" disabled><option value="">全部组件</option></select><button id="clear-selection" hidden>取消高亮</button><p id="component-note">也可以直接点击模型选择组件。</p></div>
+    <div class="specs"><div><strong>800</strong><span>宽 / mm</span></div><div><strong>1000</strong><span>深 / mm</span></div><div><strong>2200</strong><span>高 / mm</span></div></div>
+    <p class="model-note">按假设尺寸制作的精细展示模型，18 个组件组。未接入实时设备数据。</p>
+    <details><summary>高清渲染与模型说明</summary><nav class="render-links"><a href="./assets/exploded.png" target="_blank" rel="noopener">爆炸总览 ↗</a><a href="./assets/open.png" target="_blank" rel="noopener">开门剖视 ↗</a><a href="./assets/detail.png" target="_blank" rel="noopener">局部特写 ↗</a></nav><p>名义箱体尺寸不含外露附件。内部结构含推定，未经实物、制造或电气校核。展开动画用于展示，不代表真实拆装顺序。</p></details>
+    <footer>SG-01 <span>·</span> Digital model study</footer>
+  </aside>
+</main>
+<script type="module" src="./viewer.js"></script>
+</body></html>
