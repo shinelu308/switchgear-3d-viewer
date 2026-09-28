@@ -1,3 +1,4 @@
+import {createTwin} from './twin.js?v=3.0.0';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -7,6 +8,7 @@ const $=id=>document.getElementById(id);
 const names={'SG-FRAME':'柜体骨架','SG-BASE':'底板与进线孔','SG-TOP':'顶盖','SG-DOOR-F':'仪表柜门','SG-SIDE-L':'左侧板','SG-SIDE-R':'右侧板','SG-REAR':'后检修板','SG-MOUNT':'设备安装板','SG-BUS':'母排系统','SG-BREAKER':'主断路器','SG-SUPPORT':'断路器安装支架','SG-CABLE':'主电缆','SG-TERM-01':'端子排 XT01','SG-TERM-02':'端子排 XT02','SG-TERM-03':'端子排 XT03','SG-AUX':'辅助控制模块','SG-PE':'接地排','SG-DUCT':'二次接线线槽'};
 const host=$('canvas-host');let renderer,scene,camera,controls,model,mixer,clip,action;
 const components=new Map(),pickable=[],originalMaterials=new Map();
+let twin=null;
 let ready=false,playing=false,currentTime=0,pose='exploded',selected='',lastFrame=performance.now();
 let savedCamera=null,needsRender=true;
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
@@ -35,7 +37,7 @@ try{
     for(const [id,label] of Object.entries(names)){if(components.has(id)){const option=document.createElement('option');option.value=id;option.textContent=label;$('component').appendChild(option);}}
     ready=true;$('loading').hidden=true;document.querySelectorAll('button:disabled,input:disabled,select:disabled').forEach(el=>el.disabled=false);
     document.body.dataset.loaded='true';document.body.dataset.componentCount=String(components.size);
-    status(`${components.size} 个组件 · 已加载`);setPose('exploded');animate(performance.now());
+    status(`${components.size} 个组件 · 已加载`);twin=createTwin({scene,components,selectComponent,dirty:()=>needsRender=true,showOperating:()=>{setPose('assembled');$('view-name').textContent='主回路 · 运行透视';},showStructure:()=>setPose('exploded')});animate(performance.now());
   },e=>{if(e.total){const pct=Math.min(99,Math.round(e.loaded/e.total*100));$('progress').value=pct;status(`加载 ${pct}%`)}},error=>{console.error(error);fail('模型下载失败，请刷新重试，或在右侧查看高清渲染图。')});
 }catch(error){console.error(error);fail('当前浏览器未能启动三维显示。请使用支持 WebGL 的新版浏览器，或查看右侧高清图片。')}
 
@@ -58,15 +60,16 @@ function setPose(next){if(!ready)return;stop();pose=next;setTime(timeForFrame({a
 }
 function applyCutaway(){for(const id of ['SG-SIDE-R','SG-TOP'])if(components.has(id))components.get(id).visible=!$('cutaway').checked;needsRender=true;document.body.dataset.cutaway=String($('cutaway').checked)}
 function selectComponent(id){
-  for(const [mesh,mat] of originalMaterials){if(mesh.material!==mat){for(const m of [].concat(mesh.material))m.dispose();mesh.material=mat;}}
+  for(const [mesh,mat] of originalMaterials){if(mesh.material!==mat){for(const m of [].concat(mesh.material))if(m.userData.selectionClone)m.dispose();mesh.material=mat;}}
   selected=id;$('component').value=id;$('clear-selection').hidden=!id;$('selection').hidden=!id;
   if(id&&components.has(id)){
-    const group=components.get(id);group.traverse(o=>{if(o.isMesh){o.material=[].concat(originalMaterials.get(o)).map(m=>{const c=m.clone();c.emissive=new THREE.Color(0x1475e8);c.emissiveIntensity=.28;return c});if(!Array.isArray(originalMaterials.get(o)))o.material=o.material[0];}});
+    const group=components.get(id);group.traverse(o=>{if(o.isMesh){o.material=[].concat(originalMaterials.get(o)).map(m=>{const c=m.clone();c.userData.selectionClone=true;c.emissive=new THREE.Color(0x1475e8);c.emissiveIntensity=.28;return c});if(!Array.isArray(originalMaterials.get(o)))o.material=o.material[0];}});
     $('selection').textContent=`${names[id]??id}  ·  ${id}`;$('component-note').textContent=group.visible?'已高亮选中组件。':'该组件在当前剖视状态下隐藏，可关闭“查看柜内结构”。';
   }else $('component-note').textContent='也可以直接点击模型选择组件。';
-  needsRender=true;document.body.dataset.selected=id;
+  twin?.restoreGhost();needsRender=true;document.body.dataset.selected=id;
 }
 function animate(now){if(!ready)return;requestAnimationFrame(animate);const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;
+  twin?.update(dt);
   if(playing){setTime((currentTime+dt*.8)%(clip?.duration||1));needsRender=true}controls.update();
   if(needsRender||playing||controls.autoRotate){renderer.render(scene,camera);needsRender=false}
 }

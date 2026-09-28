@@ -2,14 +2,14 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SG-01 开关柜 · 三维展示</title>
+  <title>SG-01 开关柜 · 运行逻辑演示</title>
   <meta name="description" content="开关柜精细三维模型：旋转、缩放、爆炸分解、开门与内部结构展示。">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='2' width='18' height='28' rx='2' fill='%231c3443'/%3E%3Cpath d='M11 8h10M11 12h10M11 24h10' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./twin.css?v=3.0.0">
   <script type="importmap">{"imports":{"three":"./vendor/package/build/three.module.js","three/addons/":"./vendor/package/examples/jsm/"}}</script>
 </head>
 <body>
-<header><div class="brand"><span class="mark">SG</span><div><h1>开关柜三维展示</h1><p>SG-01 <span>/</span> 精细展示版 V2</p></div></div><div class="header-right"><span id="status" role="status">正在准备模型</span><button id="fullscreen" class="icon-button" aria-label="全屏展示">⛶</button></div></header>
+<header><div class="brand"><span class="mark">SG</span><div><h1>开关柜运行演示</h1><p>SG-01 <span>/</span> 运行逻辑版 V3 · 模拟数据</p></div></div><div class="header-right"><span id="status" role="status">正在准备模型</span><button id="fullscreen" class="icon-button" aria-label="全屏展示">⛶</button></div></header>
 <main>
   <section id="stage" aria-label="三维模型展示区">
     <div class="stage-label"><span class="eyebrow">SWITCHGEAR / 3D EXPLORER</span><h2 id="view-name">爆炸分解</h2></div>
@@ -17,8 +17,42 @@
     <div id="loading"><img src="./assets/exploded.png" alt="开关柜爆炸渲染预览"><div class="load-card"><strong id="load-title">正在加载交互模型</strong><p id="load-message">首次打开需下载约 23 MB，请稍候。</p><progress id="progress" max="100" value="0"></progress></div></div>
     <div class="stage-bottom"><span>拖动旋转 · 滚轮或双指缩放</span><button id="reset" disabled>重置视角 ↗</button></div>
     <div id="selection" hidden></div>
+    <div id="caption-card"><span id="caption-title">01 / 电源就绪</span><p id="caption-text">上游母排带电，断路器分闸。</p></div>
+    <section id="logic-panel" aria-label="供电逻辑示意">
+      <div class="logic-top"><span id="upstream-state">上游 400 V · 带电</span><span id="downstream-state">下游未供电</span></div>
+      <svg id="diagram" viewBox="0 0 480 88" role="img" aria-label="电源、母排、断路器、电缆、负载的供电示意图">
+        <path class="up-line" d="M30 34H196"/><path class="down-line" d="M227 34H450"/>
+        <circle class="source-node" cx="30" cy="34" r="9"/><rect class="source-node" x="108" y="26" width="14" height="16"/>
+        <circle class="contact" cx="196" cy="34" r="4"/><circle class="contact" cx="227" cy="34" r="4"/><path id="contact-blade" d="M196 34L221 14"/>
+        <rect class="load-node" x="432" y="23" width="24" height="22" rx="3"/>
+        <text x="30" y="70">电源</text><text x="115" y="70">母排</text><text x="212" y="70">QF01</text><text x="332" y="70">电缆</text><text x="444" y="70">负载</text><text id="diagram-breaker-state" x="212" y="10">分闸</text>
+      </svg>
+      <div class="logic-actions"><button data-component="SG-BUS" disabled>定位母排</button><button data-component="SG-BREAKER" disabled>定位断路器</button><button data-component="SG-CABLE" disabled>定位电缆</button><span>主回路拓扑为讲解假设 · 内部通路为示意叠加</span></div>
+    </section>
   </section>
   <aside>
+    <div class="mode-switch"><button id="mode-operation" aria-pressed="true" disabled>运行演示</button><button id="mode-structure" aria-pressed="false" disabled>结构查看</button></div>
+    <section id="operation-panel">
+      <div class="section-top"><span class="eyebrow">OPERATION / SG-01</span><span class="sim-badge">模拟演示</span></div>
+      <h2>从供电到保护</h2><p class="intro">看见能量路径，理解每一次开关动作。</p>
+      <button id="tour" class="primary" disabled>▶ 一键讲解 · 72 秒</button><progress id="tour-progress" max="72" value="0" aria-label="自动讲解进度"></progress>
+      <div class="scenario-grid" aria-label="运行场景">
+        <button data-scenario="standby" aria-pressed="true" disabled><small>01</small><b>电源待机</b><span>上游带电 · 下游断开</span></button>
+        <button data-scenario="normal" aria-pressed="false" disabled><small>02</small><b>正常供电</b><span>合闸 · 60% 负载</span></button>
+        <button data-scenario="high" aria-pressed="false" disabled><small>03</small><b>负载升高</b><span>90% 负载 · 状态预警</span></button>
+        <button id="scenario-fault" data-scenario="fault" aria-pressed="false" disabled><small>04</small><b>保护跳闸</b><span>注入过载 · 延时切除</span></button>
+      </div>
+      <div class="live-state"><span class="state-dot"></span><strong id="breaker-state">分闸 · 待机</strong><span>QF01</span></div>
+      <div class="telemetry"><div><span>负载电流</span><strong id="current-value">0</strong><em>A</em></div><div><span>下游线电压</span><strong id="voltage-value">0</strong><em>V</em></div><div><span>有功功率</span><strong id="power-value">0.0</strong><em>kW</em></div><div><span>接点温度</span><strong id="temp-value">28.0</strong><em>°C</em></div></div>
+      <div class="range-label"><label for="load-setting">模拟负载设定</label><output id="load-output">60%</output></div><input id="load-setting" type="range" min="0" max="100" value="60" disabled>
+      <div class="load-track"><span id="load-fill"></span></div><p id="trip-note" class="quiet-note">运行条件正常 · 参数均为模拟值</p>
+      <button id="reset-fault" class="outline" disabled>清除故障并复位</button>
+      
+      <label class="toggle"><span>动态能量光流<small>箭头表示供能方向，不代表电子运动</small></span><input id="flow-motion" type="checkbox" checked disabled></label>
+      <label class="toggle"><span>电缆局部剖视<small>露出铜芯与绝缘层 · 结构为示意</small></span><input id="cable-cut" type="checkbox" disabled></label><details class="event-details" open><summary>动作记录</summary><ol id="event-list"></ol></details>
+      <p class="model-note">假设工况：400 V / 630 A，三相平衡、功率因数 0.92。N / PE 不显示持续供能光流。保护延时与温升已压缩，仅用于讲解。未连接真实设备。</p>
+    </section>
+    <section id="structure-panel" hidden>
     <div class="section-top"><span class="eyebrow">MODEL CONTROL</span><span class="revision">REV.02</span></div>
     <h2>观察结构</h2>
     <p class="intro">从完整柜体到内部组件，切换视角查看结构与装配关系。</p>
@@ -31,8 +65,9 @@
     <div class="specs"><div><strong>800</strong><span>宽 / mm</span></div><div><strong>1000</strong><span>深 / mm</span></div><div><strong>2200</strong><span>高 / mm</span></div></div>
     <p class="model-note">按假设尺寸制作的精细展示模型，18 个组件组。未接入实时设备数据。</p>
     <details><summary>高清渲染与模型说明</summary><nav class="render-links"><a href="./assets/exploded.png" target="_blank" rel="noopener">爆炸总览 ↗</a><a href="./assets/open.png" target="_blank" rel="noopener">开门剖视 ↗</a><a href="./assets/detail.png" target="_blank" rel="noopener">局部特写 ↗</a></nav><p>名义箱体尺寸不含外露附件。内部结构含推定，未经实物、制造或电气校核。展开动画用于展示，不代表真实拆装顺序。</p></details>
+    </section>
     <footer>SG-01 <span>·</span> Digital model study</footer>
   </aside>
 </main>
-<script type="module" src="./viewer.js"></script>
+<script type="module" src="./viewer.js?v=3.0.0"></script>
 </body></html>
