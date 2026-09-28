@@ -30,7 +30,7 @@ try{
   new ResizeObserver(()=>{const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();needsRender=true;if(ready)fit();}).observe(host);
   controls.addEventListener('change',()=>needsRender=true);
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('浏览器的三维绘图暂时中断，请刷新页面。右侧仍可打开高清图片。')});
-  new GLTFLoader().load('./assets/switchgear.glb',gltf=>{
+  new GLTFLoader().load('./assets/switchgear-najie.glb',gltf=>{
     model=gltf.scene;scene.add(model);clip=gltf.animations[0];mixer=new THREE.AnimationMixer(model);
     if(clip){action=mixer.clipAction(clip);action.setLoop(THREE.LoopOnce,1);action.clampWhenFinished=true;action.play();}
     model.traverse(o=>{if(o.userData.component_id)components.set(o.userData.component_id,o);if(o.isMesh){pickable.push(o);originalMaterials.set(o,o.material);}});

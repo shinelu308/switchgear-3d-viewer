@@ -7,3 +7,5 @@ body{background:#0c1923}header{background:#101f2b;border-color:#2a3b49;height:80
 
 body[data-mode=operation] #canvas-host{top:125px;height:calc(100% - 330px)}
 @media(max-width:800px){body[data-mode=operation] #canvas-host{top:118px;height:calc(100% - 305px)}}
+
+.najie-mark{background:#f4f8f7;padding:4px;width:46px;height:46px;object-fit:contain;border-radius:4px}.brand h1{letter-spacing:.10em}@media(max-width:800px){.najie-mark{width:36px;height:36px;padding:3px}}

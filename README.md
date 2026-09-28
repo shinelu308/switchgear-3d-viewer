@@ -33,3 +33,7 @@ Features: orbit/zoom, assembly/explosion/door states, animation playback, cutawa
 Nominal enclosure: 800 × 1000 × 2200 mm, excluding protruding fittings. The model is a visualization asset with inferred internal geometry, not verified manufacturing CAD or an electrical design. No real-time telemetry is connected.
 
 Serve this directory using an HTTP server. GitHub Pages publishes the root of main.
+
+## Najie branding
+
+The UI, favicon, front-door nameplate and gallery images use Shanghai Najie Electric branding. The blue/green emblem is a visual reconstruction from the facade photograph supplied by the user, not an official vector master. The nameplate is embedded mesh geometry attached to the door, so assembly, explosion, and door opening retain the branding. Equipment identifiers remain unchanged.
